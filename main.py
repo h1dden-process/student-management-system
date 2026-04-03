@@ -1,50 +1,39 @@
-from PyQt6.QtWidgets import QApplication, QBoxLayout, QLabel, QWidget, QGridLayout, QLineEdit, QPushButton
-
-from datetime import datetime
+from PyQt6.QtWidgets import QApplication, QBoxLayout, QLabel, QWidget, QGridLayout, QLineEdit, QPushButton, QMainWindow, QTableWidget
+from PyQt6.QtGui import QAction
 
 import sys
 
-class AgeCalculator(QWidget):
+
+class MainWindow(QMainWindow): 
 
     def __init__(self):
+
         super().__init__()
-        self.setWindowTitle("Age Calculator")
-        grid = QGridLayout()
-        
-        name_label = QLabel("Name: ")
-        self.name_line_edit = QLineEdit()
-    
-        date_label = QLabel("Date of birth MM/DD/YYYY: ")
-        self.date_line_edit = QLineEdit()
-         
-        calculate_button = QPushButton()
-        calculate_button.clicked.connect(self.calculate_age)
-        self.output_label = QLabel("")
 
-        grid.addWidget(name_label, 0, 0)
-        grid.addWidget(self.name_line_edit, 0, 1)
-        grid.addWidget(date_label, 1, 0)
-        grid.addWidget(self.date_line_edit, 1, 1)
-        grid.addWidget(calculate_button, 2, 0, 1, 2)
-        grid.addWidget(self.output_label, 3, 0, 1, 2)
-        self.setLayout(grid)
+        self.setWindowTitle("Student Management System")
 
-    def calculate_age(self):
-        current_year = datetime.now().year
+        file_menu_item = self.menuBar().addMenu("&File")
+        help_menu_item = self.menuBar().addMenu("&Help")
 
-        date_of_birth = self.date_line_edit.text()
+        add_student_action = QAction("Add student", self)
+        file_menu_item.addAction(add_student_action)
 
-        year_of_birth = datetime.strptime(date_of_birth, "%m/%d/%Y").date().year
+        about_action = QAction("About", self)
+        help_menu_item.addAction(about_action)
 
-        age = current_year - year_of_birth
-        
-        self.output_label.setText(f"{self.name_line_edit.text()} is {age} years old.")
+        self.table = QTableWidget()
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(("id", "Name", "Course", "Mobile"))
+        self.setCentralWidget(self.table)
 
+    def load_data(self):
+        self.table
 
 
 app = QApplication(sys.argv)
 
-age_calculator = AgeCalculator()
+mainWindow = MainWindow()
+mainWindow.show()
 
-age_calculator.show()
 sys.exit(app.exec())
+
