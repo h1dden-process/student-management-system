@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QApplication, QBoxLayout, QLabel, QWidget, QGridLayo
 from PyQt6.QtGui import QAction
 
 import sys
+import sqlite3
 
 
 class MainWindow(QMainWindow): 
@@ -27,7 +28,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.table)
 
     def load_data(self):
-        self.table
+        
 
 
 app = QApplication(sys.argv)
