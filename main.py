@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication, QBoxLayout, QLabel, QWidget, QGridLayout, QLineEdit, QPushButton, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QVBoxLayout, QComboBox, QToolBar
+from PyQt6.QtWidgets import QApplication, QBoxLayout, QLabel, QWidget, QGridLayout, QLineEdit, QPushButton, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QVBoxLayout, QComboBox, QToolBar, QStatusBar
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtCore import Qt
 
@@ -17,7 +17,6 @@ class MainWindow(QMainWindow):
 
         file_menu_item = self.menuBar().addMenu("&File")
         help_menu_item = self.menuBar().addMenu("&Help")
-        edit_menu_item = self.menuBar().addMenu("&Edit")
 
         add_student_action = QAction(QIcon("./add.png"),"Add student", self)
 
@@ -31,7 +30,6 @@ class MainWindow(QMainWindow):
         search_action = QAction(QIcon("./search.png"), "Search", self)
 
         search_action.triggered.connect(self.search)
-        edit_menu_item.addAction(search_action)
 
         self.table = QTableWidget()
         self.table.setColumnCount(4)
@@ -46,8 +44,37 @@ class MainWindow(QMainWindow):
         self.addToolBar(toolbar)
         toolbar.addAction(add_student_action)
         toolbar.addAction(search_action)
+        
+        self.statusbar = QStatusBar()
 
+        self.setStatusBar(self.statusbar)
+        
+        self.table.cellClicked.connect(self.cell_clicked)
+        
+    
+    def cell_clicked(self):
+        edit_button = QPushButton("Edit Record")
+        edit_button.clicked.connect(self.edit)
 
+        delete_button = QPushButton("Delete Record") 
+        delete_button.clicked.connect(self.delete)
+        
+        children = self.findChildren(QPushButton)
+
+        if children:
+            for child in children:
+                self.statusbar.removeWidget(child)
+
+        self.statusbar.addWidget(edit_button)
+        self.statusbar.addWidget(delete_button)
+
+    def edit(self):
+        dialog = EditDialog()
+        dialog.exec()
+
+    def delete(self):
+        dialog = DeleteDialog()
+        dialog.exec()
 
     def load_data(self):
         conn = sqlite3.connect("./database.db", check_same_thread=False)
@@ -72,6 +99,64 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
 
+class EditDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Update Student Data")
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
+
+        layout = QVBoxLayout()
+        
+        index = mainWindow.table.currentRow()
+
+        student_name = mainWindow.table.item(index, 1).text()
+
+        
+        self.student_id = mainWindow.table.item(index, 0).text()
+
+        self.student_name = QLineEdit(student_name)
+        self.student_name.setPlaceholderText("Name")
+        layout.addWidget(self.student_name)
+        
+        course_name = mainWindow.table.item(index, 2).text()
+
+        self.course_name = QComboBox()
+        courses = ["Biology", "Math", "Astronomy", "Physics"]
+        self.course_name.addItems(courses)
+        self.course_name.setCurrentText(course_name)
+        layout.addWidget(self.course_name)
+
+
+        mobile = mainWindow.table.item(index, 3).text()
+        self.mobile = QLineEdit(mobile)
+        self.mobile.setPlaceholderText("Mobile")
+        layout.addWidget(self.mobile)
+
+        button = QPushButton("Update")
+        button.clicked.connect(self.update_student)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+    
+    def update_student(self):
+        conn = sqlite3.connect("./database.db", check_same_thread=False)
+
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE students SET name = ?, course = ?, mobile = ? WHERE id = ?", (self.student_name.text(), self.course_name.currentText(), self.mobile.text(), self.student_id))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        mainWindow.load_data()
+
+class DeleteDialog(QDialog):
+    pass
+
 class InsertDialog(QDialog):
     def __init__(self):
 
@@ -82,6 +167,11 @@ class InsertDialog(QDialog):
         self.setFixedHeight(300)
 
         layout = QVBoxLayout()
+
+
+
+
+
 
         self.student_name = QLineEdit()
         self.student_name.setPlaceholderText("Name")
